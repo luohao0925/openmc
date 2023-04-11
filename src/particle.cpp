@@ -29,6 +29,7 @@
 #include "openmc/tallies/tally.h"
 #include "openmc/tallies/tally_scoring.h"
 #include "openmc/track_output.h"
+#include "openmc/timer.h"
 
 #ifdef DAGMC
 #include "DagMC.hpp"
@@ -117,6 +118,7 @@ void Particle::from_source(const SourceSite* src)
 
 void Particle::event_calculate_xs()
 {
+  simulation::time_event_calculate_xs.start();
   // Set the random number stream
   stream() = STREAM_TRACKING;
 
@@ -178,10 +180,12 @@ void Particle::event_calculate_xs()
     macro_xs().fission = 0.0;
     macro_xs().nu_fission = 0.0;
   }
+  simulation::time_event_calculate_xs.stop();
 }
 
 void Particle::event_advance()
 {
+  simulation::time_photon_tracking.start();
   // Find the distance to the nearest boundary
   boundary() = distance_to_boundary(*this);
 
@@ -205,7 +209,9 @@ void Particle::event_advance()
 
   // Score track-length tallies
   if (!model::active_tracklength_tallies.empty()) {
+    simulation::time_tallies.start();
     score_tracklength_tally(*this, distance);
+    simulation::time_tallies.stop();
   }
 
   // Score track-length estimate of k-eff
@@ -218,10 +224,12 @@ void Particle::event_advance()
   if (!model::active_tallies.empty()) {
     score_track_derivative(*this, distance);
   }
+  simulation::time_photon_tracking.stop();
 }
 
 void Particle::event_cross_surface()
 {
+  simulation::time_photon_tracking.start();
   // Set surface that particle is on and adjust coordinate levels
   surface() = boundary().surface_index;
   n_coord() = boundary().coord_level;
@@ -247,6 +255,7 @@ void Particle::event_cross_surface()
   if (!model::active_surface_tallies.empty()) {
     score_surface_tally(*this, model::active_surface_tallies);
   }
+  simulation::time_photon_tracking.stop();
 }
 
 void Particle::event_collide()

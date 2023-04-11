@@ -24,6 +24,7 @@
 #include "openmc/tallies/tally.h"
 #include "openmc/thermal.h"
 #include "openmc/weight_windows.h"
+#include "openmc/timer.h"
 
 #include <fmt/core.h>
 
@@ -269,6 +270,7 @@ void sample_photon_reaction(Particle& p)
   // Kill photon if below energy cutoff -- an extra check is made here because
   // photons with energy below the cutoff may have been produced by neutrons
   // reactions or atomic relaxation
+  simulation::time_photon_reaction.start();
   int photon = static_cast<int>(ParticleType::photon);
   if (p.E() < settings::energy_cutoff[photon]) {
     p.E() = 0.0;
@@ -427,6 +429,7 @@ void sample_photon_reaction(Particle& p)
     p.wgt() = 0.0;
     p.E() = 0.0;
   }
+  simulation::time_photon_reaction.stop();
 }
 
 void sample_electron_reaction(Particle& p)

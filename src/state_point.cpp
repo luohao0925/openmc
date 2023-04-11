@@ -284,6 +284,10 @@ extern "C" int openmc_statepoint_write(const char* filename, bool* write_source)
     write_dataset(runtime_group, "simulation",
       time_inactive.elapsed() + time_active.elapsed());
     write_dataset(runtime_group, "transport", time_transport.elapsed());
+    write_dataset(runtime_group, "photon tracking", time_photon_tracking.elapsed());
+    write_dataset(runtime_group, "photon collision", time_photon_reaction.elapsed());
+    write_dataset(runtime_group, "photon xs lookup", time_event_calculate_xs.elapsed());
+    write_dataset(runtime_group, "photon tally", time_tallies.elapsed());
     if (settings::run_mode == RunMode::EIGENVALUE) {
       write_dataset(runtime_group, "inactive batches", time_inactive.elapsed());
     }
